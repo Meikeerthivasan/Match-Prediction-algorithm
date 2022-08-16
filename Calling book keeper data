@@ -1,0 +1,48 @@
+def get_bookkeeper_data(matches, bookkeepers, horizontal = True):
+    ''' Aggregates bookkeeper data for all matches and bookkeepers. '''
+    
+    bk_data = pd.DataFrame()
+    
+    #Loop through bookkeepers
+    for bookkeeper in bookkeepers:
+
+        #Find columns containing data of bookkeeper
+        temp_data = matches.loc[:,(matches.columns.str.contains(bookkeeper))]
+        temp_data.loc[:, 'bookkeeper'] = str(bookkeeper)
+        temp_data.loc[:, 'match_api_id'] = matches.loc[:, 'match_api_id']
+        
+        #Rename odds columns and convert to numeric
+        cols = temp_data.columns.values
+        cols[:3] = ['Win','Draw','Defeat']
+        temp_data.columns = cols
+        temp_data.loc[:,'Win'] = pd.to_numeric(temp_data['Win'])
+        temp_data.loc[:,'Draw'] = pd.to_numeric(temp_data['Draw'])
+        temp_data.loc[:,'Defeat'] = pd.to_numeric(temp_data['Defeat'])
+        
+        #Check if data should be aggregated horizontally
+        if(horizontal == True):
+            
+            #Convert data to probs
+            temp_data = convert_odds_to_prob(temp_data)
+            temp_data.drop('match_api_id', axis = 1, inplace = True)
+            temp_data.drop('bookkeeper', axis = 1, inplace = True)
+            
+            #Rename columns with bookkeeper names
+            win_name = bookkeeper + "_" + "Win"
+            draw_name = bookkeeper + "_" + "Draw"
+            defeat_name = bookkeeper + "_" + "Defeat"
+            temp_data.columns.values[:3] = [win_name, draw_name, defeat_name]
+
+            #Aggregate data
+            bk_data = pd.concat([bk_data, temp_data], axis = 1)
+        else:
+            #Aggregate vertically
+            bk_data = bk_data.append(temp_data, ignore_index = True)
+    
+    #If horizontal add match api id to data
+    if(horizontal == True):
+        temp_data.loc[:, 'match_api_id'] = matches.loc[:, 'match_api_id']
+    
+    #Return bookkeeper data
+    return bk_data
+    
