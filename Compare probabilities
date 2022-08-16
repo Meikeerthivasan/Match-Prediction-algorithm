@@ -1,0 +1,88 @@
+def compare_probabilities(clf, dim_reduce, bk, bookkeepers, matches, fifa_data, verbose = False):
+    ''' Map bookkeeper and model probabilities. '''
+    
+    #Create features and labels for given matches
+    feables = create_feables(matches, fifa_data, bk, get_overall = True, verbose = False)
+    
+    #Ensure consistency
+    match_ids = list(feables['match_api_id'])
+    matches = matches[matches['match_api_id'].isin(match_ids)]
+    
+    #Get bookkeeper probabilities
+    if verbose == True:
+        print("Obtaining bookkeeper probabilities...")
+    bookkeeper_probs = get_bookkeeper_probs(matches, bookkeepers)
+    bookkeeper_probs.reset_index(inplace = True, drop = True)
+    
+    inputs = feables.drop('match_api_id', axis = 1)
+    labels = inputs.loc[:,'label']
+    features = inputs.drop('label', axis = 1)
+    
+    #Get model probabilities
+    if verbose == True:
+        print("Predicting probabilities based on model...")
+    model_probs = pd.DataFrame()
+    label_table = pd.Series()
+    temp_probs = pd.DataFrame(clf.predict_proba(dim_reduce.transform(features)), columns = ['win_prob', 'draw_prob', 'defeat_prob'])
+    for bookkeeper in bookkeepers:
+        model_probs = model_probs.append(temp_probs, ignore_index = True)
+        label_table = label_table.append(labels)
+    model_probs.reset_index(inplace = True, drop = True)
+    label_table.reset_index(inplace = True, drop = True)
+    bookkeeper_probs['win_prob'] = model_probs['win_prob']
+    bookkeeper_probs['draw_prob'] = model_probs['draw_prob']
+    bookkeeper_probs['defeat_prob'] = model_probs['defeat_prob']
+    bookkeeper_probs['label'] = label_table 
+    
+    #Aggregate win probabilities for each match
+    wins = bookkeeper_probs[['bookkeeper', 'match_api_id', 'Win', 'win_prob', 'label']]
+    wins.loc[:, 'bet'] = 'Win'
+    wins = wins.rename(columns = {'Win':'bookkeeper_prob',
+                                  'win_prob': 'model_prob'})
+                                  
+    #Aggregate draw probabilities for each match
+    draws = bookkeeper_probs[['bookkeeper', 'match_api_id', 'Draw', 'draw_prob', 'label']]
+    draws.loc[:, 'bet'] = 'Draw'
+    draws = draws.rename(columns = {'Draw':'bookkeeper_prob',
+                                  'draw_prob': 'model_prob'})
+                                  
+    #Aggregate defeat probabilities for each match
+    defeats = bookkeeper_probs[['bookkeeper', 'match_api_id', 'Defeat', 'defeat_prob', 'label']]
+    defeats.loc[:, 'bet'] = 'Defeat'
+    defeats = defeats.rename(columns = {'Defeat':'bookkeeper_prob',
+                                  'defeat_prob': 'model_prob'})
+    
+    total = pd.concat([wins, draws, defeats])
+    
+    #Return total
+    return total
+    
+    def get_reward(choice, matches):
+    ''' Get the reward of a given bet. '''
+    
+    #Identify bet
+    match = matches[matches.match_api_id == choice.match_api_id]
+    bet_data = match.loc[:,(match.columns.str.contains(choice.bookkeeper))]
+    cols = bet_data.columns.values
+    cols[:3] = ['win','draw','defeat']
+    bet_data.columns = cols
+    
+    #Identfiy bet type and get quota
+    if choice.bet == 'Win':
+        bet_quota = bet_data.win.values
+    elif choice.bet == 'Draw':
+        bet_quota = bet_data.draw.values
+    elif choice.bet == 'Defeat':
+        bet_quota = bet_data.defeat.values
+    else:
+        print("Error")
+    
+    #Check label and compute reward
+    if choice.bet == choice.label:
+        reward = bet_quota
+    else:
+        reward = 0
+    
+    #Return reward
+    return reward
+      
