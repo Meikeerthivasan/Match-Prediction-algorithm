@@ -1,0 +1,21 @@
+def get_fifa_data(matches, player_stats, path = None, data_exists = False):
+    ''' Gets fifa data for all matches. '''  
+    
+    #Check if fifa data already exists
+    if data_exists == True:
+        
+        fifa_data = pd.read_pickle(path)
+        
+    else:
+        
+        print("Collecting fifa data for each match...")       
+        start = time()
+        
+        #Apply get_fifa_stats for each match
+        fifa_data = matches.apply(lambda x :get_fifa_stats(x, player_stats), axis = 1)
+        
+        end = time()    
+        print("Fifa data collected in {:.1f} minutes".format((end - start)/60))
+    
+    #Return fifa_data
+    return fifa_data
