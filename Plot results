@@ -1,0 +1,35 @@
+def plot_training_results(clfs, dm_reductions, train_scores, test_scores, path):
+    ''' Plot results of classifier training. '''
+    
+    #Set graph format
+    sns.set_style("whitegrid")
+    sns.set_context("paper", font_scale = 1, rc={"lines.linewidth": 1})
+    ax = plt.subplot(111)
+    w = 0.5
+    x = np.arange(len(train_scores))
+    ax.set_yticks(x + w)
+    ax.legend((train_scores[0], test_scores[0]), ("Train Scores", "Test Scores"))
+    names = []
+    
+    #Loop throuugh classifiers
+    for i in range(0, len(clfs)): 
+        
+        #Define temporary variables        
+        clf = clfs[i]
+        clf_name = clf.base_estimator.__class__.__name__
+        dm = dm_reductions[i]
+        dm_name = dm.__class__.__name__
+        
+        #Create and store name
+        name = "{} with {}".format(clf_name, dm_name)
+        names.append(name)
+        
+    #Plot all names in horizontal bar plot
+    ax.set_yticklabels((names))
+    plt.xlim(0.5, 0.55)
+    plt.barh(x, test_scores, color = 'b', alpha = 0.6)
+    plt.title("Test Data Accuracy Scores")
+    fig = plt.figure(1)
+    
+    plt.show()
+    
