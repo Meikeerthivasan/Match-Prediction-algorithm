@@ -1,0 +1,30 @@
+
+#Initializing classifiers
+
+RF_clf = RandomForestClassifier(n_estimators = 300, random_state = 1, class_weight = 'balanced')
+GNB_clf = GaussianNB()
+KNN_clf =  KNeighborsClassifier()
+LOG_clf = linear_model.LogisticRegression(multi_class = "ovr", solver = "sag", class_weight = 'balanced')
+clfs = [RF_clf, GNB_clf, KNN_clf, LOG_clf]
+
+#Specficying scorer and parameters for grid search
+feature_len = features.shape[1]
+scorer = make_scorer(accuracy_score)
+
+parameters_RF = {'clf__max_features': ['auto', 'log2'], 
+                 'dm_reduce__n_components': np.arange(int(5), feature_len, np.around(int(feature_len/5)))}
+parameters_GNB = {'dm_reduce__n_components': np.arange(int(5), feature_len, np.around(int(feature_len/5)))}
+parameters_KNN = {'clf__n_neighbors': [3, 5, 10], 
+                  'dm_reduce__n_components': np.arange(int(5), feature_len, np.around(int(feature_len/5)))}
+parameters_LOG = {'clf__C': np.logspace(1, 1000, 5), 
+                  'dm_reduce__n_components': np.arange(int(5), feature_len, np.around(int(feature_len/5)))}
+
+parameters = {
+              clfs[0]: parameters_RF,
+              clfs[1]: parameters_GNB,
+              clfs[2]: parameters_KNN,
+              clfs[3]: parameters_LOG}
+
+#Initializing dimensionality reductions
+pca = PCA()
+dm_reductions = [pca]  
