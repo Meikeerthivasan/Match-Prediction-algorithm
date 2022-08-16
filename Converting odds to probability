@@ -1,0 +1,29 @@
+def convert_odds_to_prob(match_odds):
+    ''' Converts bookkeeper odds to probabilities. '''
+    
+    #Define variables
+    match_id = match_odds.loc[:,'match_api_id']
+    bookkeeper = match_odds.loc[:,'bookkeeper']    
+    win_odd = match_odds.loc[:,'Win']
+    draw_odd = match_odds.loc[:,'Draw']
+    loss_odd = match_odds.loc[:,'Defeat']
+    
+    #Converts odds to prob
+    win_prob = 1 / win_odd
+    draw_prob = 1 / draw_odd
+    loss_prob = 1 / loss_odd
+    
+    total_prob = win_prob + draw_prob + loss_prob
+    
+    probs = pd.DataFrame()
+    
+    #Define output format and scale probs by sum over all probs
+    probs.loc[:,'match_api_id'] = match_id
+    probs.loc[:,'bookkeeper'] = bookkeeper
+    probs.loc[:,'Win'] = win_prob / total_prob
+    probs.loc[:,'Draw'] = draw_prob / total_prob
+    probs.loc[:,'Defeat'] = loss_prob / total_prob
+    
+    #Return probs and meta data
+    return probs
+    
