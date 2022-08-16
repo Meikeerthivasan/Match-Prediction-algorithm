@@ -1,0 +1,25 @@
+def train_calibrate_predict(clf, dm_reduction, X_train, y_train, X_calibrate, y_calibrate, X_test, y_test, cv_sets, params, scorer, jobs, 
+                            use_grid_search = True, **kwargs):
+    ''' Train and predict using a classifer based on scorer. '''
+    
+    #Indicate the classifier and the training set size
+    print("Training a {} with {}...".format(clf.__class__.__name__, dm_reduction.__class__.__name__))
+    
+    #Train the classifier
+    best_pipe = train_classifier(clf, dm_reduction, X_train, y_train, cv_sets, params, scorer, jobs)
+    
+    #Calibrate classifier
+    print("Calibrating probabilities of classifier...")
+    start = time()    
+    clf = CalibratedClassifierCV(best_pipe.named_steps['clf'], cv= 'prefit', method='isotonic')
+    clf.fit(best_pipe.named_steps['dm_reduce'].transform(X_calibrate), y_calibrate)
+    end = time()
+    print("Calibrated {} in {:.1f} minutes".format(clf.__class__.__name__, (end - start)/60))
+    
+    # Print the results of prediction for both training and testing
+    print("Score of {} for training set: {:.4f}.".format(clf.__class__.__name__, predict_labels(clf, best_pipe, X_train, y_train)))
+    print("Score of {} for test set: {:.4f}.".format(clf.__class__.__name__, predict_labels(clf, best_pipe, X_test, y_test)))
+    
+    #Return classifier, dm reduction, and label predictions for train and test set
+    return clf, best_pipe.named_steps['dm_reduce'], predict_labels(clf, best_pipe, X_train, y_train), predict_labels(clf, best_pipe, X_test, y_test)
+        
