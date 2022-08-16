@@ -1,0 +1,6 @@
+for i in range(len(clfs)):
+  print("The classifier is a {} with {}.".format(clfs[i].base_estimator.__class__.__name__, dm_reductions[i].__class__.__name__)                              )
+  plot_confusion_matrix(y_test, X_test, clfs[i], dm_reductions[i], path = path, normalize = True)
+
+# #Plotting a confusion matrix of bookkeepers
+plot_bookkeeper_cf_matrix(match_data, bk_cols_selected, path, verbose = True, normalize = True)
