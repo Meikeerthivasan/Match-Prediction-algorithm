@@ -1,0 +1,37 @@
+def plot_confusion_matrix(y_test, X_test, clf, dim_reduce, path, cmap=plt.cm.Blues, normalize = False):    
+    ''' Plot confusion matrix for given classifier and data. '''
+    
+    #Define label names and get confusion matrix values
+    labels = ["Win", "Draw", "Defeat"]
+    cm = confusion_matrix(y_test, clf.predict(dim_reduce.transform(X_test)), labels=labels)
+    
+    #Check if matrix should be normalized
+    if normalize == True:
+        
+        #Normalize
+        cm = cm.astype('float') / cm.sum()
+        
+    #Configure figure
+    sns.set_style("whitegrid", {"axes.grid" : False})
+    fig = plt.figure(1)    
+    plt.imshow(cm, interpolation='nearest', cmap = plt.cm.Blues)
+    title= "Confusion matrix of a {} with {}".format(clf.base_estimator.__class__.__name__, dim_reduce.__class__.__name__)   
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(labels))
+    plt.xticks(tick_marks, labels, rotation=45)
+    plt.yticks(tick_marks, labels)
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, round(cm[i, j], 2),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    
+    plt.show()
+    
+    #Print classification report
+    y_pred = clf.predict(dim_reduce.transform(X_test))
+    print(classification_report(y_test, y_pred)) 
