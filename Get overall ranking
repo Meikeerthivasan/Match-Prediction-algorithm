@@ -1,0 +1,20 @@
+def get_overall_fifa_rankings(fifa, get_overall = False):
+    ''' Get overall fifa rankings from fifa data. '''
+      
+    temp_data = fifa
+    
+    #Check if only overall player stats are desired
+    if get_overall == True:
+        
+        #Get overall stats
+        data = temp_data.loc[:,(fifa.columns.str.contains('overall_rating'))]
+        data.loc[:,'match_api_id'] = temp_data.loc[:,'match_api_id']
+    else:
+        
+        #Get all stats except for stat date
+        cols = fifa.loc[:,(fifa.columns.str.contains('date_stat'))]
+        temp_data = fifa.drop(cols.columns, axis = 1)        
+        data = temp_data
+    
+    #Return data
+    return data
