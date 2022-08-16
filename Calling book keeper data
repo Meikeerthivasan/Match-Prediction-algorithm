@@ -46,3 +46,16 @@ def get_bookkeeper_data(matches, bookkeepers, horizontal = True):
     #Return bookkeeper data
     return bk_data
     
+    
+    def get_bookkeeper_probs(matches, bookkeepers, horizontal = False):
+    ''' Get bookkeeper data and convert to probabilities for vertical aggregation. '''
+    
+    #Get bookkeeper data
+    data = get_bookkeeper_data(matches, bookkeepers, horizontal = False)
+    
+    #Convert odds to probabilities
+    probs = convert_odds_to_prob(data)
+    
+    #Return data
+    return probs
+
