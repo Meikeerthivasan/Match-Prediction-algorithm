@@ -1,0 +1,11 @@
+def get_goals_conceided(matches, team):
+    ''' Get the goals conceided of a specfic team from a set of matches. '''
+
+    #Find home and away goals
+    home_goals = int(matches.home_team_goal[matches.away_team_api_id == team].sum())
+    away_goals = int(matches.away_team_goal[matches.home_team_api_id == team].sum())
+
+    total_goals = home_goals + away_goals
+
+    #Return total goals
+    return total_goals
