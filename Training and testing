@@ -1,0 +1,12 @@
+## Training a baseline model and finding the best model composition using grid search
+#Train a simple GBC classifier as baseline model
+clf = LOG_clf
+clf.fit(X_train, y_train)
+print("Score of {} for training set: {:.4f}.".format(clf.__class__.__name__, accuracy_score(y_train, clf.predict(X_train))))
+print("Score of {} for test set: {:.4f}.".format(clf.__class__.__name__, accuracy_score(y_test, clf.predict(X_test))))
+
+#Training all classifiers and comparing them 
+clfs, dm_reductions, train_scores, test_scores = find_best_classifier(clfs, dm_reductions, scorer, X_train, y_train, X_calibrate, y_calibrate, X_test, y_test, cv_sets, parameters, n_jobs)
+
+#Plotting train and test scores
+plot_training_results(clfs, dm_reductions, np.array(train_scores), np.array(test_scores), path = path)
