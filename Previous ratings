@@ -1,0 +1,12 @@
+def get_last_matches(matches, date, team, x = 10):
+    ''' Get the last x matches of a given team. '''
+    
+    #Filter team matches from matches
+    team_matches = matches[(matches['home_team_api_id'] == team) | (matches['away_team_api_id'] == team)]
+                           
+    #Filter x last matches from team matches
+    last_matches = team_matches[team_matches.date < date].sort_values(by = 'date', ascending = False).iloc[0:x,:]
+    
+    #Return last matches
+    return last_matches
+    
