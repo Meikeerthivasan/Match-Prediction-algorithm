@@ -1,0 +1,46 @@
+def train_classifier(clf, dm_reduction, X_train, y_train, cv_sets, params, scorer, jobs, use_grid_search = True, 
+                     best_components = None, best_params = None):
+    ''' Fits a classifier to the training data. '''
+    
+    #Start the clock, train the classifier, then stop the clock
+    start = time()
+    
+    #Check if grid search should be applied
+    if use_grid_search == True: 
+        
+        #Define pipeline of dm reduction and classifier
+        estimators = [('dm_reduce', dm_reduction), ('clf', clf)]
+        pipeline = Pipeline(estimators)
+        
+        #Grid search over pipeline and return best classifier
+        grid_obj = model_selection.GridSearchCV(pipeline, param_grid = params, scoring = scorer, cv = cv_sets, n_jobs = jobs)
+        grid_obj.fit(X_train, y_train)
+        best_pipe = grid_obj.best_estimator_
+    else:
+        
+        #Use best components that are known without grid search        
+        estimators = [('dm_reduce', dm_reduction(n_components = 5)), ('clf', clf(best_params))]
+        pipeline = Pipeline(estimators)        
+        best_pipe = pipeline.fit(X_train, y_train)
+        
+    end = time()
+    
+    #Print the results
+    print("Trained {} in {:.1f} minutes".format(clf.__class__.__name__, (end - start)/60))
+    
+    #Return best pipe
+    return best_pipe
+    
+    def predict_labels(clf, best_pipe, features, target):
+    ''' Makes predictions using a fit classifier based on scorer. '''
+    
+    #Start the clock, make predictions, then stop the clock
+    start = time()
+    y_pred = clf.predict(best_pipe.named_steps['dm_reduce'].transform(features))
+    end = time()
+    
+    #Print and return results
+    print("Made predictions in {:.4f} seconds".format(end - start))
+    return accuracy_score(target.values, y_pred)
+    
+    
